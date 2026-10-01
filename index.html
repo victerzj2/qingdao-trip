@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>青岛游玩 - 手机导航版</title>
+    <script src="https://webapi.amap.com/maps?v=2.0&key=129c2d9953033c6afdd661a017e770a8&plugin=AMap.Driving,AMap.Walking"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .day-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .day-tab {
+            flex: 1;
+            padding: 8px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .day-tab.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .nav-mode {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 8px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 13px;
+        }
+
+        .nav-btn.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .map-container {
+            width: 100%;
+            height: 50vh;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .route-info {
+            background: #e7f3ff;
+            padding: 12px 15px;
+            border-bottom: 2px solid #667eea;
+            display: none;
+        }
+
+        .route-info.show {
+            display: block;
+        }
+
+        .route-info h3 {
+            color: #667eea;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .route-detail {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .spots-container {
+            padding: 15px;
+            max-height: calc(50vh - 200px);
+            overflow-y: auto;
+        }
+
+        .spot {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .spot.selected-start {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .spot.selected-end {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .spot-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .spot-number {
+            width: 28px;
+            height: 28px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .spot-title {
+            flex: 1;
+            font-size: 15px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .spot-time {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .spot-hint {
+            font-size: 12px;
+            color: #666;
+            padding-left: 38px;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 12px 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .clear-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .here-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .instruction {
+            background: #fff3cd;
+            padding: 12px 15px;
+            border-left: 4px solid #ffc107;
+            margin: 15px;
+            border-radius: 4px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        @media (min-width: 768px) {
+            .map-container {
+                height: 60vh;
+            }
+
+            .spots-container {
+                max-height: none;
+                padding-bottom: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🗺️ 青岛游玩导航</h1>
+        <div class="day-tabs" style="display: flex; flex-wrap: wrap;">
+            <button class="day-tab active" onclick="switchDay(1)" style="flex: 0 0 calc(33.33% - 6px);">Day 1</button>
+            <button class="day-tab" onclick="switchDay(2)" style="flex: 0 0 calc(33.33% - 6px);">Day 2</button>
+            <button class="day-tab" onclick="switchDay(3)" style="flex: 0 0 calc(33.33% - 6px);">Day 3</button>
+            <button class="day-tab" onclick="switchDay(4)" style="flex: 0 0 calc(33.33% - 6px); margin-top: 8px;">Day 4</button>
+            <button class="day-tab" onclick="switchDay(5)" style="flex: 0 0 calc(33.33% - 6px); margin-top: 8px;">Day 5</button>
+            <button class="day-tab" onclick="switchDay(6)" style="flex: 0 0 calc(33.33% - 6px); margin-top: 8px;">Day 6</button>
+        </div>
+        <div class="nav-mode">
+            <button class="nav-btn active" onclick="setNavMode('driving')">🚗 驾车</button>
+            <button class="nav-btn" onclick="setNavMode('walking')">🚶 步行</button>
+        </div>
+    </div>
+
+    <div class="instruction">
+        💡 <strong>使用方法：</strong><br>
+        1️⃣ 点击第一个景点设为起点（绿色）<br>
+        2️⃣ 点击第二个景点设为终点（红色）<br>
+        3️⃣ 自动显示路线和时间<br>
+        📍 或点"我在这里"快速设为起点
+    </div>
+
+    <div class="map-container">
+        <div id="map"></div>
+    </div>
+
+    <div class="route-info" id="routeInfo">
+        <h3>📍 路线规划</h3>
+        <div class="route-detail" id="routeDetail"></div>
+    </div>
+
+    <div class="spots-container" id="spotsContainer"></div>
+
+    <div class="controls">
+        <button class="control-btn clear-btn" onclick="clearRoute()">清除</button>
+        <button class="control-btn here-btn" onclick="setMeAsStart()">我在这里</button>
+    </div>
+
+    <script>
+        let map;
+        let currentDay = 1;
+        let navMode = 'driving';
+        let startPoint = null;
+        let endPoint = null;
+        let currentPolyline = null;
+        let markers = [];
+        let myMarker = null;
+
+        const allSpots = {
+            day1: [
+                { name: '栈桥', pos: [120.3195, 36.0580], time: '13:00' },
+                { name: '天主教堂', pos: [120.3115, 36.0667], time: '13:55' },
+                { name: '信号山', pos: [120.3107, 36.0727], time: '14:40' },
+                { name: '大学路', pos: [120.3155, 36.0595], time: '16:00' },
+                { name: '鲁迅公园', pos: [120.3283, 36.0558], time: '16:20' },
+                { name: '琴屿路', pos: [120.3315, 36.0535], time: '17:05' },
+                { name: '奥帆中心', pos: [120.3875, 36.0697], time: '18:30' }
+            ],
+            day2: [
+                { name: '石老人', pos: [120.4693, 36.0947], time: '08:30' },
+                { name: '小麦岛', pos: [120.4335, 36.0785], time: '09:30' },
+                { name: '燕儿岛', pos: [120.4155, 36.0688], time: '11:00' },
+                { name: '第二浴场', pos: [120.3665, 36.0545], time: '12:00' },
+                { name: '五四广场', pos: [120.3965, 36.0712], time: '13:15' }
+            ],
+            day3: [
+                { name: '曲阜东站', pos: [116.9833, 35.5811], time: '到达' },
+                { name: '孔庙', pos: [116.9892, 35.5956], time: '09:00' },
+                { name: '孔府', pos: [116.9915, 35.5965], time: '11:00' },
+                { name: '孔林', pos: [116.9983, 35.6125], time: '14:00' }
+            ],
+            day4: [
+                { name: '尼山圣境', pos: [117.1042, 35.5139], time: '08:30' },
+                { name: '孔子博物馆', pos: [116.9756, 35.5847], time: '14:00' }
+            ],
+            day5: [
+                { name: '泰山风景区', pos: [117.1008, 36.2539], time: '06:00' },
+                { name: '天街', pos: [117.1044, 36.2547], time: '10:00' },
+                { name: '玉皇顶', pos: [117.1069, 36.2542], time: '11:00' },
+                { name: '南天门', pos: [117.1028, 36.2525], time: '14:00' }
+            ],
+            day6: [
+                { name: '大明湖', pos: [117.0247, 36.6781], time: '09:00' },
+                { name: '趵突泉', pos: [117.0097, 36.6614], time: '11:00' },
+                { name: '芙蓉街', pos: [117.0258, 36.6653], time: '14:00' },
+                { name: '千佛山', pos: [117.0428, 36.6436], time: '16:00' }
+            ]
+        };
+
+        function initMap() {
+            map = new AMap.Map('map', {
+                zoom: 12,
+                center: [120.38, 36.07],
+                viewMode: '2D',
+                resizeEnable: true
+            });
+
+            renderItinerary(1);
+        }
+
+        function renderItinerary(day) {
+            const container = document.getElementById('spotsContainer');
+            const dayKey = `day${day}`;
+            const spots = allSpots[dayKey];
+
+            console.log(`🔧 渲染 Day ${day}，共 ${spots.length} 个景点`);
+
+            let html = '';
+            for (let i = 0; i < spots.length; i++) {
+                const spot = spots[i];
+                console.log(`  - 索引 ${i}: ${spot.name}`);
+                html += `
+                    <div class="spot" id="spot-${day}-${i}" onclick="selectSpot(${day}, ${i})">
+                        <div class="spot-header">
+                            <div class="spot-number">${i + 1}</div>
+                            <div class="spot-title">${spot.name}</div>
+                            <div class="spot-time">${spot.time}</div>
+                        </div>
+                        <div class="spot-hint">点击选择</div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+
+            // 清除标记
+            markers.forEach(m => m.setMap(null));
+            markers = [];
+
+            // 添加标记
+            for (let i = 0; i < spots.length; i++) {
+                const spot = spots[i];
+                const marker = new AMap.Marker({
+                    position: spot.pos,
+                    title: spot.name,
+                    label: {
+                        content: `<div style="background:#667eea;color:white;padding:4px 8px;border-radius:12px;font-size:12px;font-weight:bold;">${i + 1}</div>`,
+                        direction: 'top',
+                        offset: new AMap.Pixel(0, -5)
+                    }
+                });
+
+                marker.on('click', () => selectSpot(day, i));
+                marker.setMap(map);
+                markers.push(marker);
+            }
+
+            map.setFitView(markers);
+        }
+
+        function switchDay(day) {
+            currentDay = day;
+            document.querySelectorAll('.day-tab').forEach((tab, index) => {
+                tab.classList.toggle('active', index + 1 === day);
+            });
+            clearRoute();
+            renderItinerary(day);
+
+            // 根据不同天数调整地图中心
+            const centers = {
+                1: [120.38, 36.07],  // 青岛
+                2: [120.42, 36.08],  // 青岛东部
+                3: [116.99, 35.60],  // 曲阜
+                4: [117.04, 35.55],  // 曲阜周边
+                5: [117.10, 36.25],  // 泰山
+                6: [117.02, 36.66]   // 济南
+            };
+            map.setCenter(centers[day]);
+        }
+
+        function setNavMode(mode) {
+            navMode = mode;
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            if (startPoint && endPoint) {
+                planRoute();
+            }
+        }
+
+        function selectSpot(day, index) {
+            console.log('=== selectSpot 被调用 ===');
+            console.log('参数:', { day, index });
+            console.log('当前状态:', { startPoint, endPoint });
+
+            const dayKey = `day${day}`;
+
+            // 🔍 调试：检查数组是否被污染
+            console.log('🔍 allSpots[dayKey] 数组:', allSpots[dayKey]);
+            console.log('🔍 尝试获取 index', index, '的景点');
+
+            const spot = allSpots[dayKey][index];
+            console.log('✅ 获取到的景点:', spot);
+
+            if (!spot) {
+                console.error('❌ 错误：无法获取景点数据！');
+                return;
+            }
+
+            if (!startPoint) {
+                startPoint = { ...spot, day, index };
+                document.getElementById(`spot-${day}-${index}`).classList.add('selected-start');
+                console.log('✅ 已设置起点:', startPoint);
+            } else if (!endPoint) {
+                endPoint = { ...spot, day, index };
+                document.getElementById(`spot-${day}-${index}`).classList.add('selected-end');
+                console.log('✅ 已设置终点:', endPoint);
+                console.log('🚀 准备调用 planRoute()...');
+                planRoute();
+                console.log('✅ planRoute() 调用完成');
+            } else {
+                console.log('⚠️ 已有起点和终点，清除后重新设置');
+                clearRoute();
+                startPoint = { ...spot, day, index };
+                document.getElementById(`spot-${day}-${index}`).classList.add('selected-start');
+                console.log('✅ 重新设置起点:', startPoint);
+            }
+        }
+
+        function setMeAsStart() {
+            if (!navigator.geolocation) {
+                alert('📍 手动定位：\n1. 在地图上找到你的位置\n2. 点击最近的景点\n3. 再选择目的地');
+                return;
+            }
+
+            const btn = event.target;
+            btn.textContent = '定位中...';
+            btn.disabled = true;
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const myPos = [position.coords.longitude, position.coords.latitude];
+
+                    // 添加我的位置标记
+                    if (myMarker) myMarker.setMap(null);
+
+                    myMarker = new AMap.Marker({
+                        position: myPos,
+                        icon: 'https://webapi.amap.com/theme/v1.3/markers/n/mark_b.png',
+                        title: '我的位置'
+                    });
+                    myMarker.setMap(map);
+                    map.setCenter(myPos);
+
+                    startPoint = { name: '我的位置', pos: myPos };
+                    btn.textContent = '✅ 已设为起点';
+                    btn.style.background = '#218838';
+
+                    setTimeout(() => {
+                        btn.textContent = '我在这里';
+                        btn.style.background = '#28a745';
+                        btn.disabled = false;
+                    }, 2000);
+
+                    alert('✅ 已设为起点，现在选择要去的景点');
+                },
+                (error) => {
+                    btn.textContent = '我在这里';
+                    btn.disabled = false;
+                    alert('定位失败，请手动选择景点作为起点');
+                },
+                { timeout: 10000, enableHighAccuracy: true }
+            );
+        }
+
+        function planRoute() {
+            if (!startPoint || !endPoint) return;
+
+            console.log('开始规划路线:', startPoint.name, '->', endPoint.name);
+            console.log('起点坐标:', startPoint.pos);
+            console.log('终点坐标:', endPoint.pos);
+            console.log('导航模式:', navMode);
+
+            if (currentPolyline) {
+                map.remove(currentPolyline);
+            }
+
+            // 使用 Web 服务 API（JSONP方式绕过跨域限制）
+            const origin = `${startPoint.pos[0]},${startPoint.pos[1]}`;
+            const destination = `${endPoint.pos[0]},${endPoint.pos[1]}`;
+            const key = '129c2d9953033c6afdd661a017e770a8';
+
+            if (navMode === 'driving') {
+                // 驾车路径规划 - Web服务API
+                const url = `https://restapi.amap.com/v3/direction/driving?` +
+                    `origin=${origin}&destination=${destination}&key=${key}&output=json`;
+
+                console.log('🚗 调用驾车API:', url);
+
+                fetch(url)
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log('驾车API返回:', data);
+
+                        if (data.status === '1' && data.route && data.route.paths && data.route.paths.length > 0) {
+                            const path = data.route.paths[0];
+                            const distance = (path.distance / 1000).toFixed(1);
+                            const duration = Math.round(path.duration / 60);
+
+                            showRouteInfo(`
+                                <strong>🚗 驾车路线</strong><br>
+                                ${startPoint.name} → ${endPoint.name}<br>
+                                距离：${distance} 公里<br>
+                                时间：约 ${duration} 分钟<br>
+                                <a href="https://uri.amap.com/navigation?from=${origin}&to=${destination}&mode=car&policy=1&coordinate=gaode&callnative=1"
+                                   target="_blank" style="color: #667eea; text-decoration: underline; margin-top: 10px; display: inline-block;">
+                                   📱 打开高德地图导航
+                                </a>
+                            `);
+
+                            // 绘制路线（解析steps中的polyline）
+                            drawRoutePath(path.steps, '#667eea');
+
+                        } else {
+                            console.error('❌ 驾车路线规划失败:', data.info || data.infocode);
+                            alert('路线规划失败: ' + (data.info || '未知错误'));
+                        }
+                    })
+                    .catch(err => {
+                        console.error('❌ 网络请求失败:', err);
+                        alert('网络错误，请检查网络连接');
+                    });
+
+            } else {
+                // 步行路径规划 - Web服务API
+                const url = `https://restapi.amap.com/v3/direction/walking?` +
+                    `origin=${origin}&destination=${destination}&key=${key}&output=json`;
+
+                console.log('🚶 调用步行API:', url);
+
+                fetch(url)
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log('步行API返回:', data);
+
+                        if (data.status === '1' && data.route && data.route.paths && data.route.paths.length > 0) {
+                            const path = data.route.paths[0];
+                            const distance = (path.distance / 1000).toFixed(1);
+                            const duration = Math.round(path.duration / 60);
+
+                            showRouteInfo(`
+                                <strong>🚶 步行路线</strong><br>
+                                ${startPoint.name} → ${endPoint.name}<br>
+                                距离：${distance} 公里<br>
+                                时间：约 ${duration} 分钟<br>
+                                <a href="https://uri.amap.com/navigation?from=${origin}&to=${destination}&mode=walk&coordinate=gaode&callnative=1"
+                                   target="_blank" style="color: #28a745; text-decoration: underline; margin-top: 10px; display: inline-block;">
+                                   📱 打开高德地图导航
+                                </a>
+                            `);
+
+                            // 绘制路线
+                            drawRoutePath(path.steps, '#28a745');
+
+                        } else {
+                            console.error('❌ 步行路线规划失败:', data.info || data.infocode);
+                            alert('路线规划失败: ' + (data.info || '未知错误'));
+                        }
+                    })
+                    .catch(err => {
+                        console.error('❌ 网络请求失败:', err);
+                        alert('网络错误，请检查网络连接');
+                    });
+            }
+        }
+
+        // 绘制路径辅助函数
+        function drawRoutePath(steps, color) {
+            const allPoints = [];
+
+            steps.forEach(step => {
+                if (step.polyline) {
+                    // polyline 格式: "116.31,39.98;116.32,39.99;..."
+                    const points = step.polyline.split(';').map(p => {
+                        const [lng, lat] = p.split(',');
+                        return [parseFloat(lng), parseFloat(lat)];
+                    });
+                    allPoints.push(...points);
+                }
+            });
+
+            if (allPoints.length > 0) {
+                currentPolyline = new AMap.Polyline({
+                    path: allPoints,
+                    strokeColor: color,
+                    strokeWeight: 6,
+                    strokeOpacity: 0.9
+                });
+                map.add(currentPolyline);
+                map.setFitView([currentPolyline], false, [50, 50, 50, 50]);
+                console.log('✅ 路线已绘制，共', allPoints.length, '个点');
+            } else {
+                console.error('❌ 没有路径点可绘制');
+            }
+        }
+
+        function showRouteInfo(html) {
+            document.getElementById('routeDetail').innerHTML = html;
+            document.getElementById('routeInfo').classList.add('show');
+        }
+
+        function clearRoute() {
+            startPoint = null;
+            endPoint = null;
+
+            if (currentPolyline) {
+                map.remove(currentPolyline);
+                currentPolyline = null;
+            }
+
+            if (myMarker) {
+                myMarker.setMap(null);
+                myMarker = null;
+            }
+
+            document.querySelectorAll('.spot').forEach(spot => {
+                spot.classList.remove('selected-start', 'selected-end');
+            });
+
+            document.getElementById('routeInfo').classList.remove('show');
+
+            const btn = document.querySelector('.here-btn');
+            btn.textContent = '我在这里';
+            btn.style.background = '#28a745';
+            btn.disabled = false;
+        }
+
+        initMap();
+    </script>
+</body>
+</html>
