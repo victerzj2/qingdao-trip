@@ -1497,9 +1497,7 @@
             }
         }
 
-        // 路线规划功能
-        let drivingRoute = null;
-
+        // 导航功能 - 跳转到高德地图APP
         function navigateToSpot(index, day) {
             let locations;
             if (day === 1) locations = locationsDay1;
@@ -1516,37 +1514,17 @@
                 return;
             }
 
-            const destination = locations[index].lnglat;
+            const destination = locations[index];
+            const destLng = destination.lnglat[0];
+            const destLat = destination.lnglat[1];
+            const destName = encodeURIComponent(destination.name);
 
-            if (!userLocation) {
-                alert('正在获取您的位置，请稍后重试...');
-                return;
-            }
+            // 构造高德地图导航链接
+            // 格式: https://uri.amap.com/navigation?to=经度,维度,名称&mode=car&policy=1&src=myapp&coordinate=gaode&callnative=1
+            const amapUrl = `https://uri.amap.com/navigation?to=${destLng},${destLat},${destName}&mode=car&policy=1&src=qingdao-trip&coordinate=gaode&callnative=1`;
 
-            // 清除之前的路线
-            if (drivingRoute) {
-                drivingRoute.clear();
-            }
-
-            // 加载路线规划插件
-            AMap.plugin('AMap.Driving', function() {
-                drivingRoute = new AMap.Driving({
-                    map: map,
-                    panel: null,
-                    hideMarkers: false,
-                    autoFitView: true
-                });
-
-                drivingRoute.search(
-                    new AMap.LngLat(userLocation[0], userLocation[1]),
-                    new AMap.LngLat(destination[0], destination[1]),
-                    function(status, result) {
-                        if (status === 'complete') {
-                            alert(`路线规划成功！\n距离约 ${(result.routes[0].distance / 1000).toFixed(1)} 公里\n预计 ${Math.ceil(result.routes[0].time / 60)} 分钟`);
-                        } else {
-                            alert('路线规划失败，请检查网络或位置信息');
-                        }
-                    }
+            // 直接打开链接，会自动跳转到高德地图APP（如果已安装）或网页版
+            window.location.href = amapUrl;
                 );
             });
 
