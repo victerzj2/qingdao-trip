@@ -1523,13 +1523,8 @@
             // 格式: https://uri.amap.com/navigation?to=经度,维度,名称&mode=car&policy=1&src=myapp&coordinate=gaode&callnative=1
             const amapUrl = `https://uri.amap.com/navigation?to=${destLng},${destLat},${destName}&mode=car&policy=1&src=qingdao-trip&coordinate=gaode&callnative=1`;
 
-            // 直接打开链接，会自动跳转到高德地图APP（如果已安装）或网页版
-            window.location.href = amapUrl;
-                );
-            });
-
-            // 阻止事件冒泡，避免触发 focusOnMarker
-            event.stopPropagation();
+            // 在新标签页打开链接，避免当前页面跳转
+            window.open(amapUrl, '_blank');
         }
 
         function focusOnMarker(index, day) {
