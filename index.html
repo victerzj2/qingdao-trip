@@ -322,8 +322,8 @@
             }
 
             #map {
-                height: 35vh;
-                min-height: 280px;
+                height: 50vh;
+                min-height: 350px;
                 order: 1;
             }
 
@@ -348,7 +348,6 @@
 
             .itinerary {
                 padding: 16px;
-                min-height: 65vh;
             }
 
             .spot {
@@ -1523,8 +1522,8 @@
             // 格式: https://uri.amap.com/navigation?to=经度,维度,名称&mode=car&policy=1&src=myapp&coordinate=gaode&callnative=1
             const amapUrl = `https://uri.amap.com/navigation?to=${destLng},${destLat},${destName}&mode=car&policy=1&src=qingdao-trip&coordinate=gaode&callnative=1`;
 
-            // 在新标签页打开链接，避免当前页面跳转
-            window.open(amapUrl, '_blank');
+            // 手机端直接跳转，自动调用高德地图APP
+            window.location.href = amapUrl;
         }
 
         function focusOnMarker(index, day) {
