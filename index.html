@@ -2,665 +2,1378 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>青岛游玩 - 手机导航版</title>
-    <script src="https://webapi.amap.com/maps?v=2.0&key=129c2d9953033c6afdd661a017e770a8&plugin=AMap.Driving,AMap.Walking"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>山东游玩计划 (10.2-10.7)</title>
+    <script src="https://webapi.amap.com/maps?v=2.0&key=129c2d9953033c6afdd661a017e770a8"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background: #f5f5f5;
-            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        #map {
+            flex: 1;
+            height: 100%;
+        }
+
+        .sidebar {
+            width: 420px;
+            background: white;
+            overflow-y: auto;
+            box-shadow: -2px 0 8px rgba(0,0,0,0.1);
         }
 
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 15px;
+            padding: 24px;
             position: sticky;
             top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .day-tab.qufu {
+            color: #fd7e14;
+        }
+
+        .day-tab.qufu.active {
+            color: #fd7e14;
+            border-bottom: 3px solid #fd7e14;
+        }
+
+        .day-tab.taishan {
+            color: #20c997;
+        }
+
+        .day-tab.taishan.active {
+            color: #20c997;
+            border-bottom: 3px solid #20c997;
+        }
+
+        .spot.qufu {
+            border-left: 4px solid #fd7e14;
+        }
+
+        .spot.qufu .spot-number {
+            background: #fd7e14;
+        }
+
+        .spot.taishan {
+            border-left: 4px solid #20c997;
+        }
+
+        .spot.taishan .spot-number {
+            background: #20c997;
         }
 
         .header h1 {
-            font-size: 20px;
-            margin-bottom: 10px;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .header .subtitle {
+            opacity: 0.9;
+            font-size: 14px;
         }
 
         .day-tabs {
             display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
+            flex-wrap: wrap;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            position: sticky;
+            top: 96px;
+            z-index: 9;
+            gap: 4px;
+            padding: 4px;
         }
 
         .day-tab {
-            flex: 1;
-            padding: 8px;
-            background: rgba(255,255,255,0.2);
-            border: none;
-            border-radius: 6px;
-            color: white;
+            flex: 1 1 auto;
+            min-width: 120px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
             font-size: 13px;
-            font-weight: bold;
+            color: #6c757d;
+            transition: all 0.3s;
+            border: none;
+            background: white;
+            border-radius: 6px;
         }
 
         .day-tab.active {
-            background: white;
-            color: #667eea;
-        }
-
-        .nav-mode {
-            display: flex;
-            gap: 8px;
-        }
-
-        .nav-btn {
-            flex: 1;
-            padding: 8px;
-            background: rgba(255,255,255,0.2);
-            border: none;
-            border-radius: 6px;
             color: white;
-            font-size: 13px;
+            background: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
 
-        .nav-btn.active {
-            background: white;
-            color: #667eea;
+        .day-tab:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
         }
 
-        .map-container {
-            width: 100%;
-            height: 50vh;
-            position: relative;
+        .day-tab.active:hover {
+            background: #667eea;
         }
 
-        #map {
-            width: 100%;
-            height: 100%;
+        .day-tab.qufu.active {
+            background: #fd7e14;
+            box-shadow: 0 2px 8px rgba(253, 126, 20, 0.3);
         }
 
-        .route-info {
-            background: #e7f3ff;
-            padding: 12px 15px;
-            border-bottom: 2px solid #667eea;
+        .day-tab.qufu.active:hover {
+            background: #fd7e14;
+        }
+
+        .day-tab.taishan.active {
+            background: #20c997;
+            box-shadow: 0 2px 8px rgba(32, 201, 151, 0.3);
+        }
+
+        .day-tab.taishan.active:hover {
+            background: #20c997;
+        }
+
+        .itinerary {
+            padding: 20px;
+        }
+
+        .day-section {
             display: none;
         }
 
-        .route-info.show {
+        .day-section.active {
             display: block;
         }
 
-        .route-info h3 {
-            color: #667eea;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-
-        .route-detail {
-            font-size: 13px;
-            line-height: 1.6;
-            color: #333;
-        }
-
-        .spots-container {
-            padding: 15px;
-            max-height: calc(50vh - 200px);
-            overflow-y: auto;
-        }
-
         .spot {
-            background: white;
-            border: 2px solid #e0e0e0;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: #f8f9fa;
             border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 4px solid #667eea;
+            position: relative;
         }
 
-        .spot.selected-start {
-            border-color: #28a745;
-            background: #d4edda;
-        }
-
-        .spot.selected-end {
-            border-color: #dc3545;
-            background: #f8d7da;
+        .spot:hover {
+            background: #e9ecef;
+            cursor: pointer;
+            transform: translateX(4px);
+            transition: all 0.2s;
         }
 
         .spot-header {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 6px;
+            margin-bottom: 12px;
         }
 
         .spot-number {
-            width: 28px;
-            height: 28px;
             background: #667eea;
             color: white;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 13px;
-            flex-shrink: 0;
+            margin-right: 12px;
+            font-size: 14px;
         }
 
         .spot-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #212529;
             flex: 1;
-            font-size: 15px;
-            font-weight: bold;
-            color: #333;
         }
 
         .spot-time {
-            font-size: 11px;
-            color: #666;
-        }
-
-        .spot-hint {
-            font-size: 12px;
-            color: #666;
-            padding-left: 38px;
-        }
-
-        .controls {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            padding: 12px 15px;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            display: flex;
-            gap: 10px;
-        }
-
-        .control-btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
+            color: #6c757d;
             font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
         }
 
-        .clear-btn {
-            background: #dc3545;
-            color: white;
+        .spot-content {
+            margin-left: 44px;
         }
 
-        .here-btn {
-            background: #28a745;
-            color: white;
+        .spot-icon {
+            display: inline-block;
+            margin-right: 4px;
         }
 
-        .instruction {
-            background: #fff3cd;
-            padding: 12px 15px;
-            border-left: 4px solid #ffc107;
-            margin: 15px;
-            border-radius: 4px;
-            font-size: 13px;
+        .spot-detail {
+            margin: 8px 0;
+            color: #495057;
+            font-size: 14px;
             line-height: 1.6;
         }
 
-        @media (min-width: 768px) {
-            .map-container {
-                height: 60vh;
+        .transport {
+            background: #fff3cd;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            font-size: 13px;
+            color: #856404;
+            border-left: 3px solid #ffc107;
+        }
+
+        .ticket-info {
+            background: #d1ecf1;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin: 8px 0;
+            font-size: 13px;
+            color: #0c5460;
+        }
+
+        .highlight {
+            background: #d4edda;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            font-size: 13px;
+            color: #155724;
+            border-left: 3px solid #28a745;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 1;
+        }
+
+        .legend-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #212529;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 6px 0;
+            font-size: 13px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 4px;
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
             }
 
-            .spots-container {
-                max-height: none;
-                padding-bottom: 80px;
+            .sidebar {
+                width: 100%;
+                height: 50vh;
+            }
+
+            #map {
+                height: 50vh;
             }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🗺️ 青岛游玩导航</h1>
-        <div class="day-tabs" style="display: flex; flex-wrap: wrap;">
-            <button class="day-tab active" onclick="switchDay(1)" style="flex: 0 0 calc(33.33% - 6px);">Day 1</button>
-            <button class="day-tab" onclick="switchDay(2)" style="flex: 0 0 calc(33.33% - 6px);">Day 2</button>
-            <button class="day-tab" onclick="switchDay(3)" style="flex: 0 0 calc(33.33% - 6px);">Day 3</button>
-            <button class="day-tab" onclick="switchDay(4)" style="flex: 0 0 calc(33.33% - 6px); margin-top: 8px;">Day 4</button>
-            <button class="day-tab" onclick="switchDay(5)" style="flex: 0 0 calc(33.33% - 6px); margin-top: 8px;">Day 5</button>
-            <button class="day-tab" onclick="switchDay(6)" style="flex: 0 0 calc(33.33% - 6px); margin-top: 8px;">Day 6</button>
-        </div>
-        <div class="nav-mode">
-            <button class="nav-btn active" onclick="setNavMode('driving')">🚗 驾车</button>
-            <button class="nav-btn" onclick="setNavMode('walking')">🚶 步行</button>
-        </div>
-    </div>
-
-    <div class="instruction">
-        💡 <strong>使用方法：</strong><br>
-        1️⃣ 点击第一个景点设为起点（绿色）<br>
-        2️⃣ 点击第二个景点设为终点（红色）<br>
-        3️⃣ 自动显示路线和时间<br>
-        📍 或点"我在这里"快速设为起点
-    </div>
-
-    <div class="map-container">
+    <div class="container">
         <div id="map"></div>
+
+        <div class="sidebar">
+            <div class="header">
+                <h1>🗺️ 山东游玩计划</h1>
+                <div class="subtitle">2024年10月2日-7日 | 青岛 → 曲阜 → 泰山 → 济南</div>
+            </div>
+
+            <div class="day-tabs">
+                <button class="day-tab active" onclick="switchDay(1)">Day 1 (10.2)</button>
+                <button class="day-tab" onclick="switchDay(2)">Day 2 (10.3)</button>
+                <button class="day-tab qufu" onclick="switchDay(3)">Day 3 晚 (10.3)</button>
+                <button class="day-tab qufu" onclick="switchDay(4)">Day 4 (10.4)</button>
+                <button class="day-tab taishan" onclick="switchDay(5)">Day 4 晚 (10.4)</button>
+                <button class="day-tab taishan" onclick="switchDay(6)">Day 5 (10.5)</button>
+                <button class="day-tab taishan" onclick="switchDay(7)">Day 6 (10.6)</button>
+                <button class="day-tab taishan" onclick="switchDay(8)">Day 7 (10.7)</button>
+            </div>
+
+            <div class="itinerary">
+                <!-- Day 1 -->
+                <div id="day1" class="day-section active">
+                    <div class="spot" onclick="focusOnMarker(0, 1)">
+                        <div class="spot-header">
+                            <div class="spot-number">起</div>
+                            <div class="spot-title">胶东机场</div>
+                            <div class="spot-time">09:00</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="transport">
+                                🚇 地铁8号线 → 青岛北站 → 换3号线 → 五四广场站 → 换2号线 → 浮山所站 (约1h20m)
+                            </div>
+                            <div class="spot-detail">📍 到达青岛中心假日酒店，寄存行李</div>
+                        </div>
+                    </div>
+
+                    <div class="spot" onclick="focusOnMarker(1, 1)">
+                        <div class="spot-header">
+                            <div class="spot-number">🍜</div>
+                            <div class="spot-title">午餐：船歌鱼水饺</div>
+                            <div class="spot-time">11:30-12:30</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="spot-detail">📍 万象城内（酒店旁步行3分钟）</div>
+                            <div class="highlight">吃饱轻装，准备开启老城特种兵模式</div>
+                        </div>
+                    </div>
+
+                    <div class="spot" onclick="focusOnMarker(2, 1)">
+                        <div class="spot-header">
+                            <div class="spot-number">1</div>
+                            <div class="spot-title">栈桥看海</div>
+                            <div class="spot-time">13:00-13:40</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 免费免预约</div>
+                            <div class="transport">
+                                🚇 浮山所站 → 地铁2号线 → 五四广场站 → 换3号线 → 青岛站G口 (约25分钟)
+                            </div>
+                            <div class="spot-detail">📷 在岸边拍全家福，远观回澜阁</div>
+                            <div class="highlight">⚠️ 不要去挤长堤，人太多</div>
+                        </div>
+                    </div>
+
+                    <div class="spot" onclick="focusOnMarker(3, 1)">
+                        <div class="spot-header">
+                            <div class="spot-number">2</div>
+                            <div class="spot-title">天主教堂</div>
+                            <div class="spot-time">13:55-14:30</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 外部广场免费</div>
+                            <div class="transport">🚶 沿中山路向北步行15分钟（约1公里缓坡）</div>
+                            <div class="spot-detail">📷 买个"王哥庄大馒头"与教堂合影，反差萌拉满</div>
+                        </div>
+                    </div>
+
+                    <div class="spot" onclick="focusOnMarker(4, 1)">
+                        <div class="spot-header">
+                            <div class="spot-number">3</div>
+                            <div class="spot-title">信号山俯瞰老城</div>
+                            <div class="spot-time">14:40-15:40</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 需提前预约"门票+观景台"联票（公众号：青岛海滨风景区）</div>
+                            <div class="transport">🚕 打车10分钟（约1.5公里上坡路，保存体力）</div>
+                            <div class="spot-detail">🔭 登顶15分钟，进入旋转观景台看老城全貌</div>
+                        </div>
+                    </div>
+
+                    <div class="spot" onclick="focusOnMarker(5, 1)">
+                        <div class="spot-header">
+                            <div class="spot-number">4</div>
+                            <div class="spot-title">大学路网红墙</div>
+                            <div class="spot-time">16:00-16:20</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 免费免预约</div>
+                            <div class="transport">🚶 从信号山南门出，全程下坡步行5分钟</div>
+                            <div class="spot-detail">📷 打卡经典红墙转角</div>
+                        </div>
+                    </div>
+
+                    <div class="spot" onclick="focusOnMarker(6, 1)">
+                        <div class="spot-header">
+                            <div class="spot-number">5</div>
+                            <div class="spot-title">鲁迅公园</div>
+                            <div class="spot-time">16:20-17:00</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 免费免预约</div>
+                            <div class="transport">🚶 从大学路继续下坡步行15分钟直达海边</div>
+                            <div class="spot-detail">🌲 感受红礁绿松的古典美</div>
+                        </div>
+                    </div>
+
+                    <div class="spot" onclick="focusOnMarker(7, 1)">
+                        <div class="spot-header">
+                            <div class="spot-number">6</div>
+                            <div class="spot-title">琴屿路绝美日落</div>
+                            <div class="spot-time">17:05-18:00</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 免费免预约</div>
+                            <div class="transport">🚶 鲁迅公园旁步行5分钟</div>
+                            <div class="highlight">🌅 找长椅坐下，看夕阳染红海面</div>
+                        </div>
+                    </div>
+
+                    <div class="spot" onclick="focusOnMarker(8, 1)">
+                        <div class="spot-header">
+                            <div class="spot-number">7</div>
+                            <div class="spot-title">奥帆中心灯光秀</div>
+                            <div class="spot-time">18:30-19:30</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 免费免预约</div>
+                            <div class="transport">🚕 打车约20分钟（约6公里）</div>
+                            <div class="highlight">✨ 18:30准时！走到情人坝白色灯塔下，观赏对岸浮山湾摩天大楼灯光秀</div>
+                        </div>
+                    </div>
+
+                    <div class="spot" onclick="focusOnMarker(9, 1)">
+                        <div class="spot-header">
+                            <div class="spot-number">🦞</div>
+                            <div class="spot-title">晚餐：海鲜大餐</div>
+                            <div class="spot-time">19:40-21:00</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="transport">🚕 打车10分钟到云霄路/闽江路美食街</div>
+                            <div class="spot-detail">🦀 辣炒蛤蜊 + 青岛原浆啤酒</div>
+                            <div class="transport">🚶 饭后步行几分钟回酒店（或坐1站地铁2号线）</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Day 2 -->
+                <div id="day2" class="day-section">
+                    <div class="spot" onclick="focusOnMarker(0, 2)">
+                        <div class="spot-header">
+                            <div class="spot-number">1</div>
+                            <div class="spot-title">石老人海水浴场</div>
+                            <div class="spot-time">08:30-09:15</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 免费免预约</div>
+                            <div class="transport">🚕 08:00从酒店出发，打车约25分钟（约10公里）</div>
+                            <div class="highlight">🌊 市区最长海岸线，视野极其开阔</div>
+                        </div>
+                    </div>
+
+                    <div class="spot" onclick="focusOnMarker(1, 2)">
+                        <div class="spot-header">
+                            <div class="spot-number">2</div>
+                            <div class="spot-title">小麦岛公园</div>
+                            <div class="spot-time">09:30-10:45</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 免费免预约</div>
+                            <div class="transport">🚕 打车约15分钟（约5公里）</div>
+                            <div class="spot-detail">🌿 治愈系海边大草坪，孩子可以尽情跑跳</div>
+                        </div>
+                    </div>
+
+                    <div class="spot" onclick="focusOnMarker(2, 2)">
+                        <div class="spot-header">
+                            <div class="spot-number">3</div>
+                            <div class="spot-title">燕儿岛公园</div>
+                            <div class="spot-time">11:00-11:45</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 免费免预约</div>
+                            <div class="transport">🚶 顺海边步行或骑共享单车15分钟（约1.5公里）</div>
+                            <div class="highlight">🏞️ 悬崖木栈道，听海浪拍打礁石</div>
+                        </div>
+                    </div>
+
+                    <div class="spot" onclick="focusOnMarker(3, 2)">
+                        <div class="spot-header">
+                            <div class="spot-number">4</div>
+                            <div class="spot-title">八大关 & 第二海水浴场</div>
+                            <div class="spot-time">12:00-13:00</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 免费</div>
+                            <div class="transport">🚕 打车约15分钟（约6公里）</div>
+                            <div class="spot-detail">🏖️ 市区最细沙滩，挖沙踩水</div>
+                            <div class="spot-detail">🏛️ 欣赏背后万国建筑群</div>
+                        </div>
+                    </div>
+
+                    <div class="spot" onclick="focusOnMarker(4, 2)">
+                        <div class="spot-header">
+                            <div class="spot-number">5</div>
+                            <div class="spot-title">五四广场 & 午餐</div>
+                            <div class="spot-time">13:15-14:45</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 免费</div>
+                            <div class="transport">🚇 步行10分钟至太平角公园站 → 地铁3号线2站 → 五四广场站</div>
+                            <div class="spot-detail">🍽️ 五四广场商圈午餐</div>
+                            <div class="spot-detail">📷 饭后打卡红色雕塑"五月的风"</div>
+                        </div>
+                    </div>
+
+                    <div class="spot" onclick="focusOnMarker(5, 2)">
+                        <div class="spot-header">
+                            <div class="spot-number">✈️</div>
+                            <div class="spot-title">取行李 & 离开青岛</div>
+                            <div class="spot-time">14:55-16:25</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="transport">🚶 从五四广场步行10分钟回酒店</div>
+                            <div class="spot-detail">📍 14:55-15:30 拿行李，上洗手间</div>
+                            <div class="transport">
+                                🚇 15:30从酒店出发 → 浮山所站 → 地铁2号线1站 → 五四广场站 → 换3号线 → 青岛北站 (总耗时约45分钟)
+                            </div>
+                            <div class="highlight">🚅 16:25进站安检，准时乘坐高铁前往下一站</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Day 3 Evening (10.3) -->
+                <div id="day3" class="day-section">
+                    <div class="spot qufu" onclick="focusOnMarker(0, 3)">
+                        <div class="spot-header">
+                            <div class="spot-number">🚅</div>
+                            <div class="spot-title">抵达曲阜</div>
+                            <div class="spot-time">19:00+</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="transport">🚅 从青岛北站乘高铁抵达曲阜东站</div>
+                            <div class="transport">🚕 打车约20分钟前往酒店（约10公里，车费25元左右）</div>
+                            <div class="spot-detail">📍 曲阜香格里拉大酒店办理入住</div>
+                            <div class="highlight">🍜 酒店自助餐或外卖，早点休息为明天蓄力</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Day 4 (10.4) -->
+                <div id="day4" class="day-section">
+                    <div class="spot qufu" onclick="focusOnMarker(0, 4)">
+                        <div class="spot-header">
+                            <div class="spot-number">📚</div>
+                            <div class="spot-title">重要提醒：提前预约</div>
+                            <div class="spot-time">出发前</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 三孔联票：公众号"曲阜三孔景区"购买（孔庙+孔府+孔林）</div>
+                            <div class="ticket-info">🎫 孔子博物馆：公众号"孔子博物馆"预约（免费，国庆易约满，立刻预约！）</div>
+                        </div>
+                    </div>
+
+                    <div class="spot qufu" onclick="focusOnMarker(1, 4)">
+                        <div class="spot-header">
+                            <div class="spot-number">1</div>
+                            <div class="spot-title">孔庙（三分看七分听）</div>
+                            <div class="spot-time">08:00-10:00</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="transport">🚶 07:45从酒店出发，向北步行10分钟直达孔庙南门（万仞宫墙/神道）</div>
+                            <div class="ticket-info">🎫 三孔联票（已预约）</div>
+                            <div class="highlight">⚠️ 避坑：进门后务必请官方讲解员！没有讲解会非常枯燥</div>
+                            <div class="spot-detail">📷 重点：杏坛 + 大成殿龙柱（带孩子重点看这两处）</div>
+                        </div>
+                    </div>
+
+                    <div class="spot qufu" onclick="focusOnMarker(2, 4)">
+                        <div class="spot-header">
+                            <div class="spot-number">2</div>
+                            <div class="spot-title">孔府（天下第一家）</div>
+                            <div class="spot-time">10:00-11:00</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="transport">🚶 孔庙后门出，步行2分钟直接进入孔府</div>
+                            <div class="ticket-info">🎫 三孔联票（已包含）</div>
+                            <div class="spot-detail">🏛️ 看古代衍圣公办公区和后花园</div>
+                            <div class="spot-detail">📚 体会古代顶级世家大族的规制</div>
+                        </div>
+                    </div>
+
+                    <div class="spot qufu" onclick="focusOnMarker(3, 4)">
+                        <div class="spot-header">
+                            <div class="spot-number">3</div>
+                            <div class="spot-title">孔林（只看核心）</div>
+                            <div class="spot-time">11:10-12:00</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="transport">🚌 孔府出来后，门口花15元坐电瓶车/仿古马车前往（1.5公里，千万别走路！）</div>
+                            <div class="ticket-info">🎫 三孔联票（已包含）</div>
+                            <div class="highlight">⚠️ 体力保护：孔林极大！只需坐林内观光车直奔"孔子墓"核心区</div>
+                            <div class="spot-detail">📷 看"大成至圣文宣王墓"墓碑，原路返回，绝不深入闲逛</div>
+                        </div>
+                    </div>
+
+                    <div class="spot qufu" onclick="focusOnMarker(4, 4)">
+                        <div class="spot-header">
+                            <div class="spot-number">🍜</div>
+                            <div class="spot-title">午餐 & 退房</div>
+                            <div class="spot-time">12:00-13:30</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="transport">🚕 从孔林打车回香格里拉酒店（起步价）</div>
+                            <div class="spot-detail">🏨 办理退房，寄存行李</div>
+                            <div class="spot-detail">🥘 酒店周边或孔庙附近吃午饭（尝尝孔府煎饼或孔府菜）</div>
+                        </div>
+                    </div>
+
+                    <div class="spot qufu" onclick="focusOnMarker(5, 4)">
+                        <div class="spot-header">
+                            <div class="spot-number">4</div>
+                            <div class="spot-title">孔子博物馆（现代视觉盛宴）</div>
+                            <div class="spot-time">13:40-15:40</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="transport">🚕 13:30拿上行李，打车前往孔子博物馆（约4公里，10分钟）</div>
+                            <div class="ticket-info">🎫 免费（已预约）</div>
+                            <div class="spot-detail">💼 一楼服务台可免费寄存行李箱</div>
+                            <div class="highlight">✨ 何镜堂院士设计，声光电结合，孩子会很喜欢！</div>
+                            <div class="spot-detail">📚 重点：一楼巨型书墙 + 孔府珍藏明清服饰</div>
+                        </div>
+                    </div>
+
+                    <div class="spot qufu" onclick="focusOnMarker(6, 4)">
+                        <div class="spot-header">
+                            <div class="spot-number">🚅</div>
+                            <div class="spot-title">离开曲阜前往泰安</div>
+                            <div class="spot-time">15:50-17:00+</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="transport">🚕 15:50从博物馆拿行李打车前往曲阜东站（约12公里，20分钟，全程大马路不堵车）</div>
+                            <div class="spot-detail">📍 16:15抵达曲阜东站，安检进站</div>
+                            <div class="highlight">🚅 17:00左右乘高铁，约20多分钟抵达泰安站</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Day 4 Evening (10.4) -->
+                <div id="day5" class="day-section">
+                    <div class="spot taishan" onclick="focusOnMarker(0, 5)">
+                        <div class="spot-header">
+                            <div class="spot-number">🚅</div>
+                            <div class="spot-title">抵达泰安 & 提车</div>
+                            <div class="spot-time">17:30</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="transport">🚅 从曲阜东站乘高铁抵达泰安站（约20多分钟）</div>
+                            <div class="spot-detail">🚗 出站后直接前往站内租车网点办理提车手续</div>
+                            <div class="highlight">📦 将行李装车，准备自驾</div>
+                        </div>
+                    </div>
+
+                    <div class="spot taishan" onclick="focusOnMarker(1, 5)">
+                        <div class="spot-header">
+                            <div class="spot-number">🏨</div>
+                            <div class="spot-title">入住泰安开元名都酒店</div>
+                            <div class="spot-time">18:30</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="transport">🚗 自驾约25分钟（约12公里）</div>
+                            <div class="spot-detail">🏨 老牌五星酒店，硬件和服务很稳</div>
+                            <div class="spot-detail">🍗 晚上去周边本地馆子，点泰山炒鸡补充能量</div>
+                            <div class="highlight">💤 早点休息，为明天登顶储备体力</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Day 5 (10.5) -->
+                <div id="day6" class="day-section">
+                    <div class="spot taishan" onclick="focusOnMarker(0, 6)">
+                        <div class="spot-header">
+                            <div class="spot-number">1</div>
+                            <div class="spot-title">桃花峪游客中心</div>
+                            <div class="spot-time">08:15</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="transport">🚗 07:30酒店退房（行李全装车），自驾约35分钟（约15公里）</div>
+                            <div class="highlight">✨ 桃花峪人流比天外村少得多，体验极佳</div>
+                            <div class="spot-detail">🅿️ 将车停在游客中心大型停车场</div>
+                        </div>
+                    </div>
+
+                    <div class="spot taishan" onclick="focusOnMarker(1, 6)">
+                        <div class="spot-header">
+                            <div class="spot-number">2</div>
+                            <div class="spot-title">桃花源索道下站</div>
+                            <div class="spot-time">09:15</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="transport">🚌 08:30检票进站，乘景区大巴约40分钟直达索道下站</div>
+                            <div class="spot-detail">🚠 换乘桃花源索道（约15分钟）</div>
+                            <div class="highlight">🏔️ 在轿厢里俯瞰泰山后山险峻峡谷，直接飞升至山顶</div>
+                        </div>
+                    </div>
+
+                    <div class="spot taishan" onclick="focusOnMarker(2, 6)">
+                        <div class="spot-header">
+                            <div class="spot-number">3</div>
+                            <div class="spot-title">泰山玉皇顶（五岳独尊）</div>
+                            <div class="spot-time">09:30-12:30</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="spot-detail">🚶 出索道站即是山顶核心区，顺天街平缓漫步（约2.5小时）</div>
+                            <div class="spot-detail">⛩️ 途经碧霞祠</div>
+                            <div class="spot-detail">🏔️ 最后走短台阶登顶玉皇顶（海拔1545米）</div>
+                            <div class="highlight">📷 全家在"五岳独尊"石碑前合影！</div>
+                            <div class="spot-detail">🥙 中午山顶吃自带干粮或买煎饼卷大葱</div>
+                        </div>
+                    </div>
+
+                    <div class="spot taishan" onclick="focusOnMarker(3, 6)">
+                        <div class="spot-header">
+                            <div class="spot-number">🔽</div>
+                            <div class="spot-title">原路下山</div>
+                            <div class="spot-time">12:30-14:00</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="transport">🚠 从山顶原路坐索道下行</div>
+                            <div class="transport">🚌 换乘景区大巴回桃花峪停车场</div>
+                            <div class="highlight">✅ 体力消耗极小，距离19:30还有5.5小时，时间宽裕</div>
+                        </div>
+                    </div>
+
+                    <div class="spot taishan" onclick="focusOnMarker(4, 6)">
+                        <div class="spot-header">
+                            <div class="spot-number">🚗</div>
+                            <div class="spot-title">高速前往济南</div>
+                            <div class="spot-time">14:15-16:30</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="transport">🚗 14:15从桃花峪停车场驶出，10分钟内驶入G3京台高速（往济南方向）</div>
+                            <div class="spot-detail">🛣️ 高速约1.5-2小时，下午路况好</div>
+                            <div class="spot-detail">😴 孩子可以在车上睡午觉</div>
+                            <div class="highlight">📍 16:00-16:30抵达济南市区</div>
+                        </div>
+                    </div>
+
+                    <div class="spot taishan" onclick="focusOnMarker(5, 6)">
+                        <div class="spot-header">
+                            <div class="spot-number">🚗</div>
+                            <div class="spot-title">还车 & 入住酒店</div>
+                            <div class="spot-time">16:30-18:30</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="spot-detail">🚗 先还车：把车开到市中心网点还掉，甩掉自驾包袱</div>
+                            <div class="transport">🚕 打车或步行前往趵突泉亚朵S酒店</div>
+                            <div class="spot-detail">🏨 酒店位于历下区核心，步行去趵突泉和泉城广场极近</div>
+                            <div class="highlight">💆 17:30左右办理入住，房间休整（距19:30还有1小时提前量）</div>
+                        </div>
+                    </div>
+
+                    <div class="spot taishan" onclick="focusOnMarker(6, 6)">
+                        <div class="spot-header">
+                            <div class="spot-number">🌃</div>
+                            <div class="spot-title">泉城夜游</div>
+                            <div class="spot-time">19:00+</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="transport">🚶 18:30休整完毕，步行5-10分钟出门</div>
+                            <div class="spot-detail">🍽️ 宽厚里或泉城广场吃正宗鲁菜（糖醋鲤鱼、把子肉）</div>
+                            <div class="highlight">⛲ 看一场泉城广场夜间音乐喷泉，感受老舍笔下温润的济南夜色</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Day 6 (10.6) -->
+                <div id="day7" class="day-section">
+                    <div class="spot taishan" onclick="focusOnMarker(0, 7)">
+                        <div class="spot-header">
+                            <div class="spot-number">1</div>
+                            <div class="spot-title">五龙潭公园</div>
+                            <div class="spot-time">08:30-09:30</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 门票5元</div>
+                            <div class="transport">🚶 从趵突泉亚朵S酒店步行约15分钟</div>
+                            <div class="spot-detail">🏞️ 清晨游览，泉水清澈，环境幽静</div>
+                        </div>
+                    </div>
+
+                    <div class="spot taishan" onclick="focusOnMarker(1, 7)">
+                        <div class="spot-header">
+                            <div class="spot-number">2</div>
+                            <div class="spot-title">趵突泉</div>
+                            <div class="spot-time">09:40-11:00</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 门票40元</div>
+                            <div class="transport">🚶 从五龙潭步行约10分钟</div>
+                            <div class="highlight">⛲ 天下第一泉！看三股泉水喷涌，参观李清照纪念堂</div>
+                        </div>
+                    </div>
+
+                    <div class="spot taishan" onclick="focusOnMarker(2, 7)">
+                        <div class="spot-header">
+                            <div class="spot-number">3</div>
+                            <div class="spot-title">泉城广场</div>
+                            <div class="spot-time">11:10-11:40</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 免费</div>
+                            <div class="transport">🚶 从趵突泉步行约5分钟</div>
+                            <div class="spot-detail">📷 打卡泉城地标，看泉标雕塑</div>
+                        </div>
+                    </div>
+
+                    <div class="spot taishan" onclick="focusOnMarker(3, 7)">
+                        <div class="spot-header">
+                            <div class="spot-number">4</div>
+                            <div class="spot-title">黑虎泉</div>
+                            <div class="spot-time">11:50-12:30</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 免费</div>
+                            <div class="transport">🚶 从泉城广场步行约10分钟</div>
+                            <div class="highlight">🐯 三个虎头喷泉，很多本地人来这里打泉水</div>
+                        </div>
+                    </div>
+
+                    <div class="spot taishan" onclick="focusOnMarker(4, 7)">
+                        <div class="spot-header">
+                            <div class="spot-number">5</div>
+                            <div class="spot-title">解放阁</div>
+                            <div class="spot-time">12:40-13:00</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 免费</div>
+                            <div class="transport">🚶 从黑虎泉步行约5分钟</div>
+                            <div class="spot-detail">🏛️ 登阁远眺护城河，历史纪念地</div>
+                        </div>
+                    </div>
+
+                    <div class="spot taishan" onclick="focusOnMarker(5, 7)">
+                        <div class="spot-header">
+                            <div class="spot-number">🍜</div>
+                            <div class="spot-title">宽厚里午餐</div>
+                            <div class="spot-time">13:10-14:30</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="transport">🚶 从解放阁步行约10分钟</div>
+                            <div class="spot-detail">🍽️ 济南美食街区，各种特色餐厅</div>
+                            <div class="highlight">推荐：把子肉、油旋、甜沫</div>
+                        </div>
+                    </div>
+
+                    <div class="spot taishan" onclick="focusOnMarker(6, 7)">
+                        <div class="spot-header">
+                            <div class="spot-number">6</div>
+                            <div class="spot-title">芙蓉街</div>
+                            <div class="spot-time">14:40-15:30</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 免费</div>
+                            <div class="transport">🚶 从宽厚里步行约10分钟</div>
+                            <div class="spot-detail">🏮 济南老街，小吃街，边走边吃</div>
+                        </div>
+                    </div>
+
+                    <div class="spot taishan" onclick="focusOnMarker(7, 7)">
+                        <div class="spot-header">
+                            <div class="spot-number">7</div>
+                            <div class="spot-title">曲水亭街</div>
+                            <div class="spot-time">15:40-16:20</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 免费</div>
+                            <div class="transport">🚶 从芙蓉街步行约5分钟</div>
+                            <div class="highlight">🏡 泉水人家，家家泉水，户户垂杨</div>
+                        </div>
+                    </div>
+
+                    <div class="spot taishan" onclick="focusOnMarker(8, 7)">
+                        <div class="spot-header">
+                            <div class="spot-number">8</div>
+                            <div class="spot-title">大明湖</div>
+                            <div class="spot-time">16:30-18:00</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 免费</div>
+                            <div class="transport">🚶 从曲水亭街步行约10分钟</div>
+                            <div class="highlight">🌅 四面荷花三面柳，一城山色半城湖</div>
+                            <div class="spot-detail">📷 傍晚时分最美，可以坐游船</div>
+                        </div>
+                    </div>
+
+                    <div class="spot taishan" onclick="focusOnMarker(9, 7)">
+                        <div class="spot-header">
+                            <div class="spot-number">9</div>
+                            <div class="spot-title">超然楼</div>
+                            <div class="spot-time">18:10-18:40</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 免费（在大明湖内）</div>
+                            <div class="transport">🚶 大明湖北岸</div>
+                            <div class="spot-detail">🏯 登楼俯瞰大明湖全景</div>
+                        </div>
+                    </div>
+
+                    <div class="spot taishan" onclick="focusOnMarker(10, 7)">
+                        <div class="spot-header">
+                            <div class="spot-number">🌃</div>
+                            <div class="spot-title">返回酒店</div>
+                            <div class="spot-time">19:00+</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="transport">🚶 从大明湖步行回酒店约20分钟，或打车</div>
+                            <div class="spot-detail">💤 早点休息，为明天博物馆之旅储备体力</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Day 7 (10.7) -->
+                <div id="day8" class="day-section">
+                    <div class="spot taishan" onclick="focusOnMarker(0, 8)">
+                        <div class="spot-header">
+                            <div class="spot-number">📚</div>
+                            <div class="spot-title">山东博物馆</div>
+                            <div class="spot-time">09:00-12:00</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="ticket-info">🎫 免费（需提前预约，公众号"山东博物馆"）</div>
+                            <div class="transport">🚕 从酒店打车约20分钟</div>
+                            <div class="highlight">✨ 山东省最大综合性博物馆，馆藏丰富</div>
+                            <div class="spot-detail">🏺 重点展厅：汉代画像石、明代鲁王墓、佛教造像</div>
+                            <div class="spot-detail">👨‍👩‍👦 适合带孩子，有很多互动展项</div>
+                        </div>
+                    </div>
+
+                    <div class="spot taishan" onclick="focusOnMarker(1, 8)">
+                        <div class="spot-header">
+                            <div class="spot-number">🍽️</div>
+                            <div class="spot-title">午餐 & 返程准备</div>
+                            <div class="spot-time">12:30-14:00</div>
+                        </div>
+                        <div class="spot-content">
+                            <div class="spot-detail">🥘 在博物馆附近或回市区用餐</div>
+                            <div class="spot-detail">🏨 退房，整理行李</div>
+                            <div class="highlight">🚅 根据返程时间安排，结束愉快的山东之旅</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="route-info" id="routeInfo">
-        <h3>📍 路线规划</h3>
-        <div class="route-detail" id="routeDetail"></div>
-    </div>
-
-    <div class="spots-container" id="spotsContainer"></div>
-
-    <div class="controls">
-        <button class="control-btn clear-btn" onclick="clearRoute()">清除</button>
-        <button class="control-btn here-btn" onclick="setMeAsStart()">我在这里</button>
+    <div class="legend">
+        <div class="legend-title">路线图例</div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #667eea;"></div>
+            <span>Day 1 (10.2) 青岛老城线</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #f093fb;"></div>
+            <span>Day 2 (10.3) 青岛东海岸线</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #fd7e14;"></div>
+            <span>Day 3-4 (10.3-10.4) 曲阜文化线</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #20c997;"></div>
+            <span>Day 5-8 (10.5-10.7) 泰山济南线</span>
+        </div>
     </div>
 
     <script>
         let map;
-        let currentDay = 1;
-        let navMode = 'driving';
-        let startPoint = null;
-        let endPoint = null;
-        let currentPolyline = null;
-        let markers = [];
-        let myMarker = null;
+        let markersDay1 = [];
+        let markersDay2 = [];
+        let markersDay3 = [];
+        let markersDay4 = [];
+        let markersDay5 = [];
+        let markersDay6 = [];
+        let markersDay7 = [];
+        let markersDay8 = [];
+        let polylineDay1;
+        let polylineDay2;
+        let polylineDay3;
+        let polylineDay4;
+        let polylineDay5;
+        let polylineDay6;
+        let polylineDay7;
+        let polylineDay8;
 
-        const allSpots = {
-            day1: [
-                { name: '栈桥', pos: [120.3195, 36.0580], time: '13:00' },
-                { name: '天主教堂', pos: [120.3115, 36.0667], time: '13:55' },
-                { name: '信号山', pos: [120.3107, 36.0727], time: '14:40' },
-                { name: '大学路', pos: [120.3155, 36.0595], time: '16:00' },
-                { name: '鲁迅公园', pos: [120.3283, 36.0558], time: '16:20' },
-                { name: '琴屿路', pos: [120.3315, 36.0535], time: '17:05' },
-                { name: '奥帆中心', pos: [120.3875, 36.0697], time: '18:30' }
-            ],
-            day2: [
-                { name: '石老人', pos: [120.4693, 36.0947], time: '08:30' },
-                { name: '小麦岛', pos: [120.4335, 36.0785], time: '09:30' },
-                { name: '燕儿岛', pos: [120.4155, 36.0688], time: '11:00' },
-                { name: '第二浴场', pos: [120.3665, 36.0545], time: '12:00' },
-                { name: '五四广场', pos: [120.3965, 36.0712], time: '13:15' }
-            ],
-            day3: [
-                { name: '曲阜东站', pos: [116.9833, 35.5811], time: '到达' },
-                { name: '孔庙', pos: [116.9892, 35.5956], time: '09:00' },
-                { name: '孔府', pos: [116.9915, 35.5965], time: '11:00' },
-                { name: '孔林', pos: [116.9983, 35.6125], time: '14:00' }
-            ],
-            day4: [
-                { name: '尼山圣境', pos: [117.1042, 35.5139], time: '08:30' },
-                { name: '孔子博物馆', pos: [116.9756, 35.5847], time: '14:00' }
-            ],
-            day5: [
-                { name: '泰山风景区', pos: [117.1008, 36.2539], time: '06:00' },
-                { name: '天街', pos: [117.1044, 36.2547], time: '10:00' },
-                { name: '玉皇顶', pos: [117.1069, 36.2542], time: '11:00' },
-                { name: '南天门', pos: [117.1028, 36.2525], time: '14:00' }
-            ],
-            day6: [
-                { name: '大明湖', pos: [117.0247, 36.6781], time: '09:00' },
-                { name: '趵突泉', pos: [117.0097, 36.6614], time: '11:00' },
-                { name: '芙蓉街', pos: [117.0258, 36.6653], time: '14:00' },
-                { name: '千佛山', pos: [117.0428, 36.6436], time: '16:00' }
-            ]
-        };
+        // Day 1 景点坐标（青岛）
+        const locationsDay1 = [
+            { name: '胶东机场', lnglat: [120.374825, 36.264397], icon: '✈️' },
+            { name: '船歌鱼水饺(万象城)', lnglat: [120.403968, 36.066445], icon: '🍜' },
+            { name: '栈桥', lnglat: [120.318541, 36.057509], icon: '🌊' },
+            { name: '天主教堂', lnglat: [120.317639, 36.066324], icon: '⛪' },
+            { name: '信号山公园', lnglat: [120.320123, 36.073256], icon: '🏔️' },
+            { name: '大学路网红墙', lnglat: [120.323456, 36.065789], icon: '📷' },
+            { name: '鲁迅公园', lnglat: [120.334567, 36.060234], icon: '🌲' },
+            { name: '琴屿路', lnglat: [120.336789, 36.059123], icon: '🌅' },
+            { name: '奥帆中心', lnglat: [120.384567, 36.067890], icon: '⛵' },
+            { name: '云霄路美食街', lnglat: [120.401234, 36.071567], icon: '🦞' }
+        ];
+
+        // Day 2 景点坐标（青岛）
+        const locationsDay2 = [
+            { name: '石老人海水浴场', lnglat: [120.472345, 36.093456], icon: '🗿' },
+            { name: '小麦岛公园', lnglat: [120.437890, 36.082345], icon: '🌿' },
+            { name: '燕儿岛公园', lnglat: [120.413456, 36.074567], icon: '🏞️' },
+            { name: '八大关 & 第二海水浴场', lnglat: [120.368901, 36.056789], icon: '🏖️' },
+            { name: '五四广场', lnglat: [120.393456, 36.066789], icon: '🎨' },
+            { name: '青岛中心假日酒店', lnglat: [120.403968, 36.066445], icon: '🏨' }
+        ];
+
+        // Day 3 景点坐标（曲阜）
+        const locationsDay3 = [
+            { name: '曲阜香格里拉大酒店', lnglat: [116.986234, 35.597123], icon: '🏨' }
+        ];
+
+        // Day 4 景点坐标（曲阜）
+        const locationsDay4 = [
+            { name: '曲阜香格里拉大酒店', lnglat: [116.986234, 35.597123], icon: '🏨' },
+            { name: '孔庙', lnglat: [116.987890, 35.598456], icon: '🏛️' },
+            { name: '孔府', lnglat: [116.988456, 35.599012], icon: '🏰' },
+            { name: '孔林', lnglat: [116.989123, 35.607890], icon: '🌳' },
+            { name: '孔庙附近餐厅', lnglat: [116.987345, 35.597890], icon: '🍜' },
+            { name: '孔子博物馆', lnglat: [116.996789, 35.589234], icon: '🏛️' },
+            { name: '曲阜东站', lnglat: [117.046789, 35.578901], icon: '🚅' }
+        ];
+
+        // Day 5 景点坐标（泰安）
+        const locationsDay5 = [
+            { name: '泰安站', lnglat: [117.129456, 36.194567], icon: '🚅' },
+            { name: '泰安开元名都酒店', lnglat: [117.115678, 36.201234], icon: '🏨' }
+        ];
+
+        // Day 6 景点坐标（泰山+济南）
+        const locationsDay6 = [
+            { name: '桃花峪游客中心', lnglat: [117.168901, 36.234567], icon: '🅿️' },
+            { name: '桃花源索道下站', lnglat: [117.178234, 36.245678], icon: '🚠' },
+            { name: '泰山玉皇顶', lnglat: [117.107234, 36.254890], icon: '⛰️' },
+            { name: '桃花峪（下山）', lnglat: [117.168901, 36.234567], icon: '🔽' },
+            { name: 'G3京台高速入口', lnglat: [117.145678, 36.215890], icon: '🛣️' },
+            { name: '济南市区还车点', lnglat: [117.024567, 36.668901], icon: '🚗' },
+            { name: '趵突泉亚朵S酒店', lnglat: [117.020123, 36.665234], icon: '🏨' }
+        ];
+
+        // Day 7 景点坐标（济南一日游）
+        const locationsDay7 = [
+            { name: '五龙潭公园', lnglat: [117.003456, 36.666789], icon: '🏞️' },
+            { name: '趵突泉', lnglat: [117.009876, 36.662345], icon: '⛲' },
+            { name: '泉城广场', lnglat: [117.024567, 36.666123], icon: '🎨' },
+            { name: '黑虎泉', lnglat: [117.032890, 36.664567], icon: '🐯' },
+            { name: '解放阁', lnglat: [117.035678, 36.663234], icon: '🏛️' },
+            { name: '宽厚里', lnglat: [117.028901, 36.667890], icon: '🍜' },
+            { name: '芙蓉街', lnglat: [117.022345, 36.671234], icon: '🏮' },
+            { name: '曲水亭街', lnglat: [117.020789, 36.673456], icon: '🏡' },
+            { name: '大明湖', lnglat: [117.024123, 36.682345], icon: '🌅' },
+            { name: '超然楼', lnglat: [117.025678, 36.686789], icon: '🏯' },
+            { name: '趵突泉亚朵S酒店', lnglat: [117.020123, 36.665234], icon: '🏨' }
+        ];
+
+        // Day 8 景点坐标（山东博物馆）
+        const locationsDay8 = [
+            { name: '山东博物馆', lnglat: [117.067890, 36.678456], icon: '🏛️' },
+            { name: '趵突泉亚朵S酒店', lnglat: [117.020123, 36.665234], icon: '🏨' }
+        ];
 
         function initMap() {
             map = new AMap.Map('map', {
                 zoom: 12,
                 center: [120.38, 36.07],
                 viewMode: '2D',
-                resizeEnable: true
+                mapStyle: 'amap://styles/whitesmoke'
             });
 
-            renderItinerary(1);
-        }
-
-        function renderItinerary(day) {
-            const container = document.getElementById('spotsContainer');
-            const dayKey = `day${day}`;
-            const spots = allSpots[dayKey];
-
-            console.log(`🔧 渲染 Day ${day}，共 ${spots.length} 个景点`);
-
-            let html = '';
-            for (let i = 0; i < spots.length; i++) {
-                const spot = spots[i];
-                console.log(`  - 索引 ${i}: ${spot.name}`);
-                html += `
-                    <div class="spot" id="spot-${day}-${i}" onclick="selectSpot(${day}, ${i})">
-                        <div class="spot-header">
-                            <div class="spot-number">${i + 1}</div>
-                            <div class="spot-title">${spot.name}</div>
-                            <div class="spot-time">${spot.time}</div>
-                        </div>
-                        <div class="spot-hint">点击选择</div>
-                    </div>
-                `;
-            }
-
-            container.innerHTML = html;
-
-            // 清除标记
-            markers.forEach(m => m.setMap(null));
-            markers = [];
-
-            // 添加标记
-            for (let i = 0; i < spots.length; i++) {
-                const spot = spots[i];
+            // 创建 Day 1 标记
+            locationsDay1.forEach((loc, index) => {
                 const marker = new AMap.Marker({
-                    position: spot.pos,
-                    title: spot.name,
+                    position: loc.lnglat,
+                    map: map,
+                    title: loc.name,
                     label: {
-                        content: `<div style="background:#667eea;color:white;padding:4px 8px;border-radius:12px;font-size:12px;font-weight:bold;">${i + 1}</div>`,
-                        direction: 'top',
-                        offset: new AMap.Pixel(0, -5)
+                        content: `<div style="background: #667eea; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;">${loc.icon} ${index === 0 || index === 1 || index === 9 ? loc.name.substring(0, 4) : index}</div>`,
+                        offset: new AMap.Pixel(0, -35)
                     }
                 });
+                markersDay1.push(marker);
+            });
 
-                marker.on('click', () => selectSpot(day, i));
-                marker.setMap(map);
-                markers.push(marker);
-            }
+            // 创建 Day 1 路线
+            const pathDay1 = locationsDay1.map(loc => loc.lnglat);
+            polylineDay1 = new AMap.Polyline({
+                path: pathDay1,
+                strokeColor: '#667eea',
+                strokeWeight: 4,
+                strokeOpacity: 0.8,
+                map: map,
+                lineJoin: 'round'
+            });
 
-            map.setFitView(markers);
+            // 创建 Day 2 标记（初始隐藏）
+            locationsDay2.forEach((loc, index) => {
+                const marker = new AMap.Marker({
+                    position: loc.lnglat,
+                    map: null,
+                    title: loc.name,
+                    label: {
+                        content: `<div style="background: #f093fb; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;">${loc.icon} ${index + 1}</div>`,
+                        offset: new AMap.Pixel(0, -35)
+                    }
+                });
+                markersDay2.push(marker);
+            });
+
+            // 创建 Day 2 路线（初始隐藏）
+            const pathDay2 = locationsDay2.map(loc => loc.lnglat);
+            polylineDay2 = new AMap.Polyline({
+                path: pathDay2,
+                strokeColor: '#f093fb',
+                strokeWeight: 4,
+                strokeOpacity: 0.8,
+                map: null,
+                lineJoin: 'round'
+            });
+
+            // 创建 Day 3 标记（初始隐藏）
+            locationsDay3.forEach((loc, index) => {
+                const marker = new AMap.Marker({
+                    position: loc.lnglat,
+                    map: null,
+                    title: loc.name,
+                    label: {
+                        content: `<div style="background: #fd7e14; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;">${loc.icon} ${loc.name.substring(0, 4)}</div>`,
+                        offset: new AMap.Pixel(0, -35)
+                    }
+                });
+                markersDay3.push(marker);
+            });
+
+            // Day 3 不需要路线（只有一个点）
+            polylineDay3 = null;
+
+            // 创建 Day 4 标记（初始隐藏）
+            locationsDay4.forEach((loc, index) => {
+                const marker = new AMap.Marker({
+                    position: loc.lnglat,
+                    map: null,
+                    title: loc.name,
+                    label: {
+                        content: `<div style="background: #fd7e14; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;">${loc.icon} ${index === 0 || index === 4 || index === 6 ? loc.name.substring(0, 4) : index}</div>`,
+                        offset: new AMap.Pixel(0, -35)
+                    }
+                });
+                markersDay4.push(marker);
+            });
+
+            // 创建 Day 4 路线（初始隐藏）
+            const pathDay4 = locationsDay4.map(loc => loc.lnglat);
+            polylineDay4 = new AMap.Polyline({
+                path: pathDay4,
+                strokeColor: '#fd7e14',
+                strokeWeight: 4,
+                strokeOpacity: 0.8,
+                map: null,
+                lineJoin: 'round'
+            });
+
+            // 创建 Day 5 标记（初始隐藏）
+            locationsDay5.forEach((loc, index) => {
+                const marker = new AMap.Marker({
+                    position: loc.lnglat,
+                    map: null,
+                    title: loc.name,
+                    label: {
+                        content: `<div style="background: #20c997; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;">${loc.icon} ${loc.name.substring(0, 4)}</div>`,
+                        offset: new AMap.Pixel(0, -35)
+                    }
+                });
+                markersDay5.push(marker);
+            });
+
+            // 创建 Day 5 路线（初始隐藏）
+            const pathDay5 = locationsDay5.map(loc => loc.lnglat);
+            polylineDay5 = new AMap.Polyline({
+                path: pathDay5,
+                strokeColor: '#20c997',
+                strokeWeight: 4,
+                strokeOpacity: 0.8,
+                map: null,
+                lineJoin: 'round'
+            });
+
+            // 创建 Day 6 标记（初始隐藏）
+            locationsDay6.forEach((loc, index) => {
+                const marker = new AMap.Marker({
+                    position: loc.lnglat,
+                    map: null,
+                    title: loc.name,
+                    label: {
+                        content: `<div style="background: #20c997; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;">${loc.icon} ${index + 1}</div>`,
+                        offset: new AMap.Pixel(0, -35)
+                    }
+                });
+                markersDay6.push(marker);
+            });
+
+            // 创建 Day 6 路线（初始隐藏）
+            const pathDay6 = locationsDay6.map(loc => loc.lnglat);
+            polylineDay6 = new AMap.Polyline({
+                path: pathDay6,
+                strokeColor: '#20c997',
+                strokeWeight: 4,
+                strokeOpacity: 0.8,
+                map: null,
+                lineJoin: 'round'
+            });
+
+            // 创建 Day 7 标记（初始隐藏）
+            locationsDay7.forEach((loc, index) => {
+                const marker = new AMap.Marker({
+                    position: loc.lnglat,
+                    map: null,
+                    title: loc.name,
+                    label: {
+                        content: `<div style="background: #20c997; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;">${loc.icon} ${index + 1}</div>`,
+                        offset: new AMap.Pixel(0, -35)
+                    }
+                });
+                markersDay7.push(marker);
+            });
+
+            // 创建 Day 7 路线（初始隐藏）
+            const pathDay7 = locationsDay7.map(loc => loc.lnglat);
+            polylineDay7 = new AMap.Polyline({
+                path: pathDay7,
+                strokeColor: '#20c997',
+                strokeWeight: 4,
+                strokeOpacity: 0.8,
+                map: null,
+                lineJoin: 'round'
+            });
+
+            // 创建 Day 8 标记（初始隐藏）
+            locationsDay8.forEach((loc, index) => {
+                const marker = new AMap.Marker({
+                    position: loc.lnglat,
+                    map: null,
+                    title: loc.name,
+                    label: {
+                        content: `<div style="background: #20c997; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;">${loc.icon} ${loc.name.substring(0, 4)}</div>`,
+                        offset: new AMap.Pixel(0, -35)
+                    }
+                });
+                markersDay8.push(marker);
+            });
+
+            // 创建 Day 8 路线（初始隐藏）
+            const pathDay8 = locationsDay8.map(loc => loc.lnglat);
+            polylineDay8 = new AMap.Polyline({
+                path: pathDay8,
+                strokeColor: '#20c997',
+                strokeWeight: 4,
+                strokeOpacity: 0.8,
+                map: null,
+                lineJoin: 'round'
+            });
         }
 
         function switchDay(day) {
-            currentDay = day;
-            document.querySelectorAll('.day-tab').forEach((tab, index) => {
+            // 更新标签样式
+            const tabs = document.querySelectorAll('.day-tab');
+            tabs.forEach((tab, index) => {
                 tab.classList.toggle('active', index + 1 === day);
             });
-            clearRoute();
-            renderItinerary(day);
 
-            // 根据不同天数调整地图中心
-            const centers = {
-                1: [120.38, 36.07],  // 青岛
-                2: [120.42, 36.08],  // 青岛东部
-                3: [116.99, 35.60],  // 曲阜
-                4: [117.04, 35.55],  // 曲阜周边
-                5: [117.10, 36.25],  // 泰山
-                6: [117.02, 36.66]   // 济南
-            };
-            map.setCenter(centers[day]);
-        }
-
-        function setNavMode(mode) {
-            navMode = mode;
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-
-            if (startPoint && endPoint) {
-                planRoute();
-            }
-        }
-
-        function selectSpot(day, index) {
-            console.log('=== selectSpot 被调用 ===');
-            console.log('参数:', { day, index });
-            console.log('当前状态:', { startPoint, endPoint });
-
-            const dayKey = `day${day}`;
-
-            // 🔍 调试：检查数组是否被污染
-            console.log('🔍 allSpots[dayKey] 数组:', allSpots[dayKey]);
-            console.log('🔍 尝试获取 index', index, '的景点');
-
-            const spot = allSpots[dayKey][index];
-            console.log('✅ 获取到的景点:', spot);
-
-            if (!spot) {
-                console.error('❌ 错误：无法获取景点数据！');
-                return;
-            }
-
-            if (!startPoint) {
-                startPoint = { ...spot, day, index };
-                document.getElementById(`spot-${day}-${index}`).classList.add('selected-start');
-                console.log('✅ 已设置起点:', startPoint);
-            } else if (!endPoint) {
-                endPoint = { ...spot, day, index };
-                document.getElementById(`spot-${day}-${index}`).classList.add('selected-end');
-                console.log('✅ 已设置终点:', endPoint);
-                console.log('🚀 准备调用 planRoute()...');
-                planRoute();
-                console.log('✅ planRoute() 调用完成');
-            } else {
-                console.log('⚠️ 已有起点和终点，清除后重新设置');
-                clearRoute();
-                startPoint = { ...spot, day, index };
-                document.getElementById(`spot-${day}-${index}`).classList.add('selected-start');
-                console.log('✅ 重新设置起点:', startPoint);
-            }
-        }
-
-        function setMeAsStart() {
-            if (!navigator.geolocation) {
-                alert('📍 手动定位：\n1. 在地图上找到你的位置\n2. 点击最近的景点\n3. 再选择目的地');
-                return;
-            }
-
-            const btn = event.target;
-            btn.textContent = '定位中...';
-            btn.disabled = true;
-
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const myPos = [position.coords.longitude, position.coords.latitude];
-
-                    // 添加我的位置标记
-                    if (myMarker) myMarker.setMap(null);
-
-                    myMarker = new AMap.Marker({
-                        position: myPos,
-                        icon: 'https://webapi.amap.com/theme/v1.3/markers/n/mark_b.png',
-                        title: '我的位置'
-                    });
-                    myMarker.setMap(map);
-                    map.setCenter(myPos);
-
-                    startPoint = { name: '我的位置', pos: myPos };
-                    btn.textContent = '✅ 已设为起点';
-                    btn.style.background = '#218838';
-
-                    setTimeout(() => {
-                        btn.textContent = '我在这里';
-                        btn.style.background = '#28a745';
-                        btn.disabled = false;
-                    }, 2000);
-
-                    alert('✅ 已设为起点，现在选择要去的景点');
-                },
-                (error) => {
-                    btn.textContent = '我在这里';
-                    btn.disabled = false;
-                    alert('定位失败，请手动选择景点作为起点');
-                },
-                { timeout: 10000, enableHighAccuracy: true }
-            );
-        }
-
-        function planRoute() {
-            if (!startPoint || !endPoint) return;
-
-            console.log('开始规划路线:', startPoint.name, '->', endPoint.name);
-            console.log('起点坐标:', startPoint.pos);
-            console.log('终点坐标:', endPoint.pos);
-            console.log('导航模式:', navMode);
-
-            if (currentPolyline) {
-                map.remove(currentPolyline);
-            }
-
-            // 使用 Web 服务 API（JSONP方式绕过跨域限制）
-            const origin = `${startPoint.pos[0]},${startPoint.pos[1]}`;
-            const destination = `${endPoint.pos[0]},${endPoint.pos[1]}`;
-            const key = '129c2d9953033c6afdd661a017e770a8';
-
-            if (navMode === 'driving') {
-                // 驾车路径规划 - Web服务API
-                const url = `https://restapi.amap.com/v3/direction/driving?` +
-                    `origin=${origin}&destination=${destination}&key=${key}&output=json`;
-
-                console.log('🚗 调用驾车API:', url);
-
-                fetch(url)
-                    .then(res => res.json())
-                    .then(data => {
-                        console.log('驾车API返回:', data);
-
-                        if (data.status === '1' && data.route && data.route.paths && data.route.paths.length > 0) {
-                            const path = data.route.paths[0];
-                            const distance = (path.distance / 1000).toFixed(1);
-                            const duration = Math.round(path.duration / 60);
-
-                            showRouteInfo(`
-                                <strong>🚗 驾车路线</strong><br>
-                                ${startPoint.name} → ${endPoint.name}<br>
-                                距离：${distance} 公里<br>
-                                时间：约 ${duration} 分钟<br>
-                                <a href="https://uri.amap.com/navigation?from=${origin}&to=${destination}&mode=car&policy=1&coordinate=gaode&callnative=1"
-                                   target="_blank" style="color: #667eea; text-decoration: underline; margin-top: 10px; display: inline-block;">
-                                   📱 打开高德地图导航
-                                </a>
-                            `);
-
-                            // 绘制路线（解析steps中的polyline）
-                            drawRoutePath(path.steps, '#667eea');
-
-                        } else {
-                            console.error('❌ 驾车路线规划失败:', data.info || data.infocode);
-                            alert('路线规划失败: ' + (data.info || '未知错误'));
-                        }
-                    })
-                    .catch(err => {
-                        console.error('❌ 网络请求失败:', err);
-                        alert('网络错误，请检查网络连接');
-                    });
-
-            } else {
-                // 步行路径规划 - Web服务API
-                const url = `https://restapi.amap.com/v3/direction/walking?` +
-                    `origin=${origin}&destination=${destination}&key=${key}&output=json`;
-
-                console.log('🚶 调用步行API:', url);
-
-                fetch(url)
-                    .then(res => res.json())
-                    .then(data => {
-                        console.log('步行API返回:', data);
-
-                        if (data.status === '1' && data.route && data.route.paths && data.route.paths.length > 0) {
-                            const path = data.route.paths[0];
-                            const distance = (path.distance / 1000).toFixed(1);
-                            const duration = Math.round(path.duration / 60);
-
-                            showRouteInfo(`
-                                <strong>🚶 步行路线</strong><br>
-                                ${startPoint.name} → ${endPoint.name}<br>
-                                距离：${distance} 公里<br>
-                                时间：约 ${duration} 分钟<br>
-                                <a href="https://uri.amap.com/navigation?from=${origin}&to=${destination}&mode=walk&coordinate=gaode&callnative=1"
-                                   target="_blank" style="color: #28a745; text-decoration: underline; margin-top: 10px; display: inline-block;">
-                                   📱 打开高德地图导航
-                                </a>
-                            `);
-
-                            // 绘制路线
-                            drawRoutePath(path.steps, '#28a745');
-
-                        } else {
-                            console.error('❌ 步行路线规划失败:', data.info || data.infocode);
-                            alert('路线规划失败: ' + (data.info || '未知错误'));
-                        }
-                    })
-                    .catch(err => {
-                        console.error('❌ 网络请求失败:', err);
-                        alert('网络错误，请检查网络连接');
-                    });
-            }
-        }
-
-        // 绘制路径辅助函数
-        function drawRoutePath(steps, color) {
-            const allPoints = [];
-
-            steps.forEach(step => {
-                if (step.polyline) {
-                    // polyline 格式: "116.31,39.98;116.32,39.99;..."
-                    const points = step.polyline.split(';').map(p => {
-                        const [lng, lat] = p.split(',');
-                        return [parseFloat(lng), parseFloat(lat)];
-                    });
-                    allPoints.push(...points);
-                }
+            // 更新内容显示
+            const sections = document.querySelectorAll('.day-section');
+            sections.forEach((section, index) => {
+                section.classList.toggle('active', index + 1 === day);
             });
 
-            if (allPoints.length > 0) {
-                currentPolyline = new AMap.Polyline({
-                    path: allPoints,
-                    strokeColor: color,
-                    strokeWeight: 6,
-                    strokeOpacity: 0.9
-                });
-                map.add(currentPolyline);
-                map.setFitView([currentPolyline], false, [50, 50, 50, 50]);
-                console.log('✅ 路线已绘制，共', allPoints.length, '个点');
-            } else {
-                console.error('❌ 没有路径点可绘制');
+            // 隐藏所有标记和路线
+            markersDay1.forEach(marker => marker.setMap(null));
+            markersDay2.forEach(marker => marker.setMap(null));
+            markersDay3.forEach(marker => marker.setMap(null));
+            markersDay4.forEach(marker => marker.setMap(null));
+            markersDay5.forEach(marker => marker.setMap(null));
+            markersDay6.forEach(marker => marker.setMap(null));
+            markersDay7.forEach(marker => marker.setMap(null));
+            markersDay8.forEach(marker => marker.setMap(null));
+            polylineDay1.setMap(null);
+            polylineDay2.setMap(null);
+            if (polylineDay3) polylineDay3.setMap(null);
+            polylineDay4.setMap(null);
+            polylineDay5.setMap(null);
+            polylineDay6.setMap(null);
+            polylineDay7.setMap(null);
+            polylineDay8.setMap(null);
+
+            // 显示对应天数的标记和路线
+            if (day === 1) {
+                markersDay1.forEach(marker => marker.setMap(map));
+                polylineDay1.setMap(map);
+                map.setFitView([polylineDay1]);
+            } else if (day === 2) {
+                markersDay2.forEach(marker => marker.setMap(map));
+                polylineDay2.setMap(map);
+                map.setFitView([polylineDay2]);
+            } else if (day === 3) {
+                markersDay3.forEach(marker => marker.setMap(map));
+                map.setZoomAndCenter(13, locationsDay3[0].lnglat);
+            } else if (day === 4) {
+                markersDay4.forEach(marker => marker.setMap(map));
+                polylineDay4.setMap(map);
+                map.setFitView([polylineDay4]);
+            } else if (day === 5) {
+                markersDay5.forEach(marker => marker.setMap(map));
+                polylineDay5.setMap(map);
+                map.setFitView([polylineDay5]);
+            } else if (day === 6) {
+                markersDay6.forEach(marker => marker.setMap(map));
+                polylineDay6.setMap(map);
+                map.setFitView([polylineDay6]);
+            } else if (day === 7) {
+                markersDay7.forEach(marker => marker.setMap(map));
+                polylineDay7.setMap(map);
+                map.setFitView([polylineDay7]);
+            } else if (day === 8) {
+                markersDay8.forEach(marker => marker.setMap(map));
+                polylineDay8.setMap(map);
+                map.setFitView([polylineDay8]);
             }
         }
 
-        function showRouteInfo(html) {
-            document.getElementById('routeDetail').innerHTML = html;
-            document.getElementById('routeInfo').classList.add('show');
+        function focusOnMarker(index, day) {
+            let markers;
+            if (day === 1) markers = markersDay1;
+            else if (day === 2) markers = markersDay2;
+            else if (day === 3) markers = markersDay3;
+            else if (day === 4) markers = markersDay4;
+            else if (day === 5) markers = markersDay5;
+            else if (day === 6) markers = markersDay6;
+            else if (day === 7) markers = markersDay7;
+            else if (day === 8) markers = markersDay8;
+
+            const marker = markers[index];
+
+            map.setZoomAndCenter(15, marker.getPosition(), true, 500);
+
+            // 添加动画效果
+            marker.setAnimation('AMAP_ANIMATION_BOUNCE');
+            setTimeout(() => {
+                marker.setAnimation('AMAP_ANIMATION_NONE');
+            }, 1000);
         }
 
-        function clearRoute() {
-            startPoint = null;
-            endPoint = null;
-
-            if (currentPolyline) {
-                map.remove(currentPolyline);
-                currentPolyline = null;
-            }
-
-            if (myMarker) {
-                myMarker.setMap(null);
-                myMarker = null;
-            }
-
-            document.querySelectorAll('.spot').forEach(spot => {
-                spot.classList.remove('selected-start', 'selected-end');
-            });
-
-            document.getElementById('routeInfo').classList.remove('show');
-
-            const btn = document.querySelector('.here-btn');
-            btn.textContent = '我在这里';
-            btn.style.background = '#28a745';
-            btn.disabled = false;
-        }
-
-        initMap();
+        // 初始化地图
+        window.onload = initMap;
     </script>
 </body>
 </html>
