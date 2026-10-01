@@ -286,15 +286,92 @@
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
+                height: auto;
             }
 
             .sidebar {
                 width: 100%;
-                height: 50vh;
+                height: auto;
+                max-height: none;
+                order: 2;
             }
 
             #map {
-                height: 50vh;
+                height: 35vh;
+                min-height: 280px;
+                order: 1;
+            }
+
+            .header {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            .day-tabs {
+                position: sticky;
+                top: 96px;
+                z-index: 9;
+                background: white;
+            }
+
+            .day-tab {
+                min-width: 85px;
+                font-size: 10px;
+                padding: 9px 4px;
+            }
+
+            .itinerary {
+                padding: 16px;
+                min-height: 65vh;
+            }
+
+            .spot {
+                margin-bottom: 18px;
+                padding: 14px;
+            }
+
+            .spot-title {
+                font-size: 16px;
+            }
+
+            .spot-time {
+                font-size: 12px;
+            }
+
+            .spot-detail {
+                font-size: 13px;
+            }
+
+            .spot-number {
+                width: 28px;
+                height: 28px;
+                font-size: 13px;
+            }
+
+            .transport {
+                font-size: 12px;
+                padding: 10px;
+            }
+
+            .ticket-info {
+                font-size: 12px;
+            }
+
+            .highlight {
+                font-size: 12px;
+                padding: 10px;
+            }
+
+            .legend {
+                font-size: 10px;
+                padding: 10px;
+                bottom: 10px;
+                left: 10px;
+            }
+
+            .legend-item {
+                font-size: 11px;
             }
         }
     </style>
