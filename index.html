@@ -233,6 +233,31 @@
             border-left: 3px solid #ffc107;
         }
 
+        .nav-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .nav-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-button:active {
+            transform: scale(0.98);
+        }
+
         .ticket-info {
             background: #d1ecf1;
             padding: 8px 12px;
@@ -411,6 +436,7 @@
                                 🚇 地铁8号线 → 青岛北站 → 换3号线 → 五四广场站 → 换2号线 → 浮山所站 (约1h20m)
                             </div>
                             <div class="spot-detail">📍 到达青岛中心假日酒店，寄存行李</div>
+                            <button class="nav-button" onclick="navigateToSpot(0, 1); event.stopPropagation();">🧭 导航到此</button>
                         </div>
                     </div>
 
@@ -423,6 +449,7 @@
                         <div class="spot-content">
                             <div class="spot-detail">📍 万象城内（酒店旁步行3分钟）</div>
                             <div class="highlight">吃饱轻装，准备开启老城特种兵模式</div>
+                            <button class="nav-button" onclick="navigateToSpot(1, 1); event.stopPropagation();">🧭 导航到此</button>
                         </div>
                     </div>
 
@@ -439,6 +466,7 @@
                             </div>
                             <div class="spot-detail">📷 在岸边拍全家福，远观回澜阁</div>
                             <div class="highlight">⚠️ 不要去挤长堤，人太多</div>
+                            <button class="nav-button" onclick="navigateToSpot(2, 1); event.stopPropagation();">🧭 导航到此</button>
                         </div>
                     </div>
 
@@ -452,6 +480,7 @@
                             <div class="ticket-info">🎫 外部广场免费</div>
                             <div class="transport">🚶 沿中山路向北步行15分钟（约1公里缓坡）</div>
                             <div class="spot-detail">📷 买个"王哥庄大馒头"与教堂合影，反差萌拉满</div>
+                            <button class="nav-button" onclick="navigateToSpot(3, 1); event.stopPropagation();">🧭 导航到此</button>
                         </div>
                     </div>
 
@@ -465,6 +494,7 @@
                             <div class="ticket-info">🎫 需提前预约"门票+观景台"联票（公众号：青岛海滨风景区）</div>
                             <div class="transport">🚕 打车10分钟（约1.5公里上坡路，保存体力）</div>
                             <div class="spot-detail">🔭 登顶15分钟，进入旋转观景台看老城全貌</div>
+                            <button class="nav-button" onclick="navigateToSpot(4, 1); event.stopPropagation();">🧭 导航到此</button>
                         </div>
                     </div>
 
@@ -478,6 +508,7 @@
                             <div class="ticket-info">🎫 免费免预约</div>
                             <div class="transport">🚶 从信号山南门出，全程下坡步行5分钟</div>
                             <div class="spot-detail">📷 打卡经典红墙转角</div>
+                            <button class="nav-button" onclick="navigateToSpot(5, 1); event.stopPropagation();">🧭 导航到此</button>
                         </div>
                     </div>
 
@@ -491,6 +522,7 @@
                             <div class="ticket-info">🎫 免费免预约</div>
                             <div class="transport">🚶 从大学路继续下坡步行15分钟直达海边</div>
                             <div class="spot-detail">🌲 感受红礁绿松的古典美</div>
+                            <button class="nav-button" onclick="navigateToSpot(6, 1); event.stopPropagation();">🧭 导航到此</button>
                         </div>
                     </div>
 
@@ -504,6 +536,7 @@
                             <div class="ticket-info">🎫 免费免预约</div>
                             <div class="transport">🚶 鲁迅公园旁步行5分钟</div>
                             <div class="highlight">🌅 找长椅坐下，看夕阳染红海面</div>
+                            <button class="nav-button" onclick="navigateToSpot(7, 1); event.stopPropagation();">🧭 导航到此</button>
                         </div>
                     </div>
 
@@ -517,6 +550,7 @@
                             <div class="ticket-info">🎫 免费免预约</div>
                             <div class="transport">🚕 打车约20分钟（约6公里）</div>
                             <div class="highlight">✨ 18:30准时！走到情人坝白色灯塔下，观赏对岸浮山湾摩天大楼灯光秀</div>
+                            <button class="nav-button" onclick="navigateToSpot(8, 1); event.stopPropagation();">🧭 导航到此</button>
                         </div>
                     </div>
 
@@ -528,6 +562,7 @@
                         </div>
                         <div class="spot-content">
                             <div class="transport">🚕 打车10分钟到云霄路/闽江路美食街</div>
+                            <button class="nav-button" onclick="navigateToSpot(9, 1); event.stopPropagation();">🧭 导航到此</button>
                             <div class="spot-detail">🦀 辣炒蛤蜊 + 青岛原浆啤酒</div>
                             <div class="transport">🚶 饭后步行几分钟回酒店（或坐1站地铁2号线）</div>
                         </div>
@@ -546,6 +581,7 @@
                             <div class="ticket-info">🎫 免费免预约</div>
                             <div class="transport">🚕 08:00从酒店出发，打车约25分钟（约10公里）</div>
                             <div class="highlight">🌊 市区最长海岸线，视野极其开阔</div>
+                            <button class="nav-button" onclick="navigateToSpot(0, 2); event.stopPropagation();">🧭 导航到此</button>
                         </div>
                     </div>
 
@@ -559,6 +595,7 @@
                             <div class="ticket-info">🎫 免费免预约</div>
                             <div class="transport">🚕 打车约15分钟（约5公里）</div>
                             <div class="spot-detail">🌿 治愈系海边大草坪，孩子可以尽情跑跳</div>
+                            <button class="nav-button" onclick="navigateToSpot(1, 2); event.stopPropagation();">🧭 导航到此</button>
                         </div>
                     </div>
 
@@ -572,6 +609,7 @@
                             <div class="ticket-info">🎫 免费免预约</div>
                             <div class="transport">🚶 顺海边步行或骑共享单车15分钟（约1.5公里）</div>
                             <div class="highlight">🏞️ 悬崖木栈道，听海浪拍打礁石</div>
+                            <button class="nav-button" onclick="navigateToSpot(2, 2); event.stopPropagation();">🧭 导航到此</button>
                         </div>
                     </div>
 
@@ -586,6 +624,7 @@
                             <div class="transport">🚕 打车约15分钟（约6公里）</div>
                             <div class="spot-detail">🏖️ 市区最细沙滩，挖沙踩水</div>
                             <div class="spot-detail">🏛️ 欣赏背后万国建筑群</div>
+                            <button class="nav-button" onclick="navigateToSpot(3, 2); event.stopPropagation();">🧭 导航到此</button>
                         </div>
                     </div>
 
@@ -600,6 +639,7 @@
                             <div class="transport">🚇 步行10分钟至太平角公园站 → 地铁3号线2站 → 五四广场站</div>
                             <div class="spot-detail">🍽️ 五四广场商圈午餐</div>
                             <div class="spot-detail">📷 饭后打卡红色雕塑"五月的风"</div>
+                            <button class="nav-button" onclick="navigateToSpot(4, 2); event.stopPropagation();">🧭 导航到此</button>
                         </div>
                     </div>
 
@@ -1160,12 +1200,42 @@
             { name: '趵突泉亚朵S酒店', lnglat: [117.020123, 36.665234], icon: '🏨' }
         ];
 
+        let userLocation = null;
+        let userMarker = null;
+
         function initMap() {
             map = new AMap.Map('map', {
                 zoom: 12,
                 center: [120.38, 36.07],
                 viewMode: '2D',
                 mapStyle: 'amap://styles/whitesmoke'
+            });
+
+            // 添加实时定位功能
+            map.plugin(['AMap.Geolocation'], function() {
+                const geolocation = new AMap.Geolocation({
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    buttonPosition: 'RB',
+                    buttonOffset: new AMap.Pixel(10, 80),
+                    zoomToAccuracy: true,
+                    showButton: true,
+                    showMarker: true,
+                    showCircle: true,
+                    panToLocation: true,
+                    useNative: true
+                });
+
+                map.addControl(geolocation);
+
+                geolocation.getCurrentPosition(function(status, result) {
+                    if (status === 'complete') {
+                        userLocation = [result.position.lng, result.position.lat];
+                        console.log('定位成功:', userLocation);
+                    } else {
+                        console.log('定位失败');
+                    }
+                });
             });
 
             // 创建 Day 1 标记
@@ -1425,6 +1495,63 @@
                 polylineDay8.setMap(map);
                 map.setFitView([polylineDay8]);
             }
+        }
+
+        // 路线规划功能
+        let drivingRoute = null;
+
+        function navigateToSpot(index, day) {
+            let locations;
+            if (day === 1) locations = locationsDay1;
+            else if (day === 2) locations = locationsDay2;
+            else if (day === 3) locations = locationsDay3;
+            else if (day === 4) locations = locationsDay4;
+            else if (day === 5) locations = locationsDay5;
+            else if (day === 6) locations = locationsDay6;
+            else if (day === 7) locations = locationsDay7;
+            else if (day === 8) locations = locationsDay8;
+
+            if (!locations || !locations[index]) {
+                alert('景点信息不可用');
+                return;
+            }
+
+            const destination = locations[index].lnglat;
+
+            if (!userLocation) {
+                alert('正在获取您的位置，请稍后重试...');
+                return;
+            }
+
+            // 清除之前的路线
+            if (drivingRoute) {
+                drivingRoute.clear();
+            }
+
+            // 加载路线规划插件
+            AMap.plugin('AMap.Driving', function() {
+                drivingRoute = new AMap.Driving({
+                    map: map,
+                    panel: null,
+                    hideMarkers: false,
+                    autoFitView: true
+                });
+
+                drivingRoute.search(
+                    new AMap.LngLat(userLocation[0], userLocation[1]),
+                    new AMap.LngLat(destination[0], destination[1]),
+                    function(status, result) {
+                        if (status === 'complete') {
+                            alert(`路线规划成功！\n距离约 ${(result.routes[0].distance / 1000).toFixed(1)} 公里\n预计 ${Math.ceil(result.routes[0].time / 60)} 分钟`);
+                        } else {
+                            alert('路线规划失败，请检查网络或位置信息');
+                        }
+                    }
+                );
+            });
+
+            // 阻止事件冒泡，避免触发 focusOnMarker
+            event.stopPropagation();
         }
 
         function focusOnMarker(index, day) {
